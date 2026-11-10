@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Abacus Flash Sums | Premium</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #ec4899;
+    --accent: #f59e0b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; -webkit-tap-highlight-color: transparent; }
+  html, body { overflow-x: hidden; }
+  
+  body {
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 20px; color: var(--text-dark);
+  }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .bg-shape {
+    position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.4; z-index: -1;
+    animation: floatShape 20s infinite ease-in-out;
+  }
+  .shape-1 { width: 300px; height: 300px; background: #ff00cc; top: -100px; left: -100px; }
+  .shape-2 { width: 400px; height: 400px; background: #3333ff; bottom: -150px; right: -150px; animation-delay: -5s; }
+  @keyframes floatShape {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(30px, 50px); }
+  }
+
+  .container {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 30px;
+    max-width: 600px; width: 100%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5);
+    position: relative; overflow: hidden;
+  }
+
+  .header {
+    text-align: center; margin-bottom: 25px;
+    padding-bottom: 20px; border-bottom: 2px dashed rgba(0,0,0,0.1);
+  }
+  .logo {
+    font-size: 28px; font-weight: 900; letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+  }
+  .tagline { font-size: 13px; color: var(--text-light); margin-top: 5px; font-weight: 600; }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; margin-bottom: 15px;
+  }
+  .hud-item { 
+    flex: 1; text-align: center;
+    background: white; padding: 12px 8px; border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .hud-label { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+  .hud-value { font-size: 22px; font-weight: 900; color: var(--primary); margin-top: 2px; }
+  .streak { color: var(--danger) !important; }
+  .streak.active { animation: pulse 0.5s ease; }
+  @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.2);} 100%{transform:scale(1);} }
+
+  .progress-bar {
+    width: 100%; height: 10px; background: rgba(0,0,0,0.08);
+    border-radius: 20px; overflow: hidden; margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--success), #34d399);
+    width: 0%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 20px;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  }
+
+  h2 { color: var(--text-dark); margin-bottom: 15px; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  label { display: block; margin: 12px 0 6px; font-weight: 700; color: var(--text-dark); font-size: 14px; }
+  textarea, select, input[type="number"], input[type="text"] {
+    width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0;
+    border-radius: 14px; font-size: 16px; font-weight: 600;
+    background: white; transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  }
+  textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+  textarea:focus, select:focus, input:focus { 
+    border-color: var(--primary); outline: none; 
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  }
+  textarea:read-only { background: #f1f5f9; color: #64748b; cursor: not-allowed; }
+
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+
+  button {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white; border: none; padding: 16px 24px;
+    border-radius: 14px; font-size: 16px; font-weight: 800;
+    cursor: pointer; margin-top: 15px; width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+    letter-spacing: 0.5px;
+  }
+  button:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5); }
+  button:active { transform: translateY(0); }
+  .btn-secondary { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 10px 20px -5px rgba(100, 116, 139, 0.4); }
+  .btn-success { background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 10px 20px -5px rgba(37, 211, 102, 0.4); }
+  .btn-info { background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.4); }
+  .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4); }
+  .btn-small { width: auto; padding: 12px 20px; font-size: 14px; margin: 5px; }
+
+  .game-area {
+    text-align: center; padding: 30px 10px;
+    min-height: 220px; position: relative;
+    background: radial-gradient(circle, rgba(99,102,241,0.05) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 20px; margin-bottom: 10px;
+  }
+  .flash-number {
+    font-size: 80px; font-weight: 900; color: var(--text-dark);
+    min-height: 100px; display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    letter-spacing: -2px;
+  }
+  .flash-number.pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  @keyframes popIn { 0%{transform:scale(0.5);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+
+  .finger-display {
+    font-size: 36px; margin-top: 10px; min-height: 50px;
+    color: var(--primary); letter-spacing: 4px;
+  }
+
+  .answer-input {
+    font-size: 32px; text-align: center; padding: 14px;
+    border: 3px solid var(--primary); border-radius: 16px;
+    width: 100%; max-width: 250px; margin: 20px auto; display: block;
+    font-weight: 900; color: var(--text-dark);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+  }
+  .answer-input:focus { outline: none; border-color: var(--secondary); box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3); }
+
+  .feedback {
+    font-size: 20px; font-weight: 800; min-height: 30px;
+    margin-top: 10px; transition: all 0.3s;
+  }
+  .feedback.correct { color: var(--success); }
+  .feedback.wrong { color: var(--danger); }
+
+  .controls { display: flex; justify-content: center; flex-wrap: wrap; margin-top: 10px; gap: 8px; }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);
+    display: none; justify-content: center; align-items: center; z-index: 2000;
+    padding: 15px; overflow-y: auto;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white; border-radius: 24px; padding: 30px 25px;
+    max-width: 450px; width: 100%; text-align: center;
+    animation: modalIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  }
+  @keyframes modalIn { 0%{transform:scale(0.7) translateY(50px);opacity:0;} 100%{transform:scale(1) translateY(0);opacity:1;} }
+  .modal h2 { justify-content: center; font-size: 26px; }
+  .modal .trophy { font-size: 70px; margin: 10px 0; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .student-info {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px; padding: 15px; margin: 15px 0; text-align: left;
+  }
+  .student-info .info-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .student-info .info-label { color: var(--text-light); font-weight: 700; }
+  .student-info .info-value { color: var(--text-dark); font-weight: 800; }
+
+  .report-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+    color: white; border-radius: 20px; padding: 25px; margin: 20px 0;
+    text-align: center; position: relative; overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,215,0,0.3);
+  }
+  .report-card::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 60%);
+    animation: rotateGlow 10s linear infinite;
+  }
+  @keyframes rotateGlow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  
+  .report-card > * { position: relative; z-index: 1; }
+  .report-card h3 { font-size: 18px; margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; color: #fbbf24; }
+  .report-card .student-name { font-size: 28px; font-weight: 900; margin: 10px 0; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .report-card .institution { font-size: 14px; opacity: 0.8; margin-bottom: 20px; font-weight: 600; }
+  .report-card .big-score { font-size: 56px; font-weight: 900; color: #fbbf24; text-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); line-height: 1; }
+  .report-card .score-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 20px; }
+  .report-card .stats-row { display: flex; justify-content: space-around; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .report-card .mini-stat { text-align: center; }
+  .report-card .mini-value { font-size: 24px; font-weight: 900; color: #fbbf24; }
+  .report-card .mini-label { font-size: 10px; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px; }
+  .report-card .footer { margin-top: 20px; font-size: 12px; opacity: 0.5; font-style: italic; }
+
+  .badge {
+    display: inline-block; background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1e1b4b; padding: 8px 16px; border-radius: 30px;
+    font-size: 13px; font-weight: 800; margin: 4px;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+  }
+
+  .share-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+  .hidden { display: none !important; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95); color: white;
+    padding: 14px 28px; border-radius: 50px; font-size: 14px; font-weight: 700;
+    z-index: 9999; animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  @keyframes toastIn { 0% { opacity: 0; transform: translate(-50%, 30px); } 100% { opacity: 1; transform: translate(-50%, 0); } }
+
+  .monkey-stage{position:relative;width:100%;height:230px;border-radius:20px;overflow:hidden;border:2px solid rgba(0,0,0,.08);background:#EAF8EE;margin-bottom:12px}
+  #monkeyCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  @media (max-width:480px){.monkey-stage{height:200px}}
+
+  /* Reward Effects */
+  #rewardLayer { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 999999; }
+  .reward-plus10 {
+    position: fixed; font-size: 48px; font-weight: 900; color: #fbbf24;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    animation: rewardPlusFloat 1.2s ease-out forwards; pointer-events: none;
+  }
+  @keyframes rewardPlusFloat {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    20% { opacity: 1; transform: translate(-50%, -70%) scale(1.3); }
+    100% { opacity: 0; transform: translate(-50%, -200%) scale(1); }
+  }
+  .reward-chocolate {
+    position: fixed; top: -50px; font-size: 36px;
+    animation: rewardChocolateFall 1.8s ease-in forwards; pointer-events: none;
+  }
+  @keyframes rewardChocolateFall {
+    0% { opacity: 0; transform: translateY(-40px) rotate(0deg) scale(0.8); }
+    10% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(110vh) rotate(720deg) scale(1.2); }
+  }
+  .reward-cracker {
+    position: fixed; width: 10px; height: 10px; border-radius: 50%;
+    animation: rewardCrackerBurst 900ms ease-out forwards; pointer-events: none;
+  }
+  @keyframes rewardCrackerBurst {
+    0% { opacity: 1; transform: translate(var(--startX), var(--startY)) scale(1); }
+    100% { opacity: 0; transform: translate(calc(var(--startX) + var(--moveX)), calc(var(--startY) + var(--moveY))) scale(0.2) rotate(360deg); }
+  }
+  .reward-pop {
+    position: fixed; font-size: 40px;
+    animation: rewardPop 900ms ease-out forwards; pointer-events: none;
+  }
+  @keyframes rewardPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); }
+    100% { opacity: 0; transform: translate(-50%, -100%) scale(0.8); }
+  }
+
+  /* Student Login Screen Styles */
+  .login-card {
+    text-align: center;
+    padding: 20px 0;
+  }
+  .login-card h2 {
+    justify-content: center;
+    font-size: 24px;
+    color: var(--primary);
+  }
+  .login-card .welcome-icon {
+    font-size: 60px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 10px; }
+    .container { padding: 20px; border-radius: 20px; }
+    .logo { font-size: 24px; }
+    .tagline { font-size: 12px; }
+    h2 { font-size: 18px; }
+    label { font-size: 13px; }
+    .hud-item { padding: 10px 5px; }
+    .hud-label { font-size: 9px; }
+    .hud-value { font-size: 18px; }
+    .flash-number { font-size: 60px; min-height: 80px; }
+    .finger-display { font-size: 28px; }
+    .answer-input { font-size: 26px; padding: 12px; max-width: 100%; }
+    .feedback { font-size: 18px; }
+    .btn-small { padding: 12px 16px; font-size: 14px; flex: 1; }
+    .row { flex-direction: column; gap: 0; }
+    .modal { padding: 25px 20px; }
+    .modal h2 { font-size: 22px; }
+    .report-card .student-name { font-size: 24px; }
+    .report-card .big-score { font-size: 48px; }
+    .reward-plus10 { font-size: 36px; }
+    .reward-chocolate { font-size: 32px; }
+    .reward-pop { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-shape shape-1"></div>
+<div class="bg-shape shape-2"></div>
+<div id="rewardLayer"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="logo">🧮 Abacus Flash Sums</div>
+    <div class="tagline">Type your own sums. The game runs on them.</div>
+  </div>
+
+  <!-- TEACHER SETUP SCREEN -->
+  <div id="setupScreen">
+    <div id="teacherView">
+      <h2>👤 Teacher Details</h2>
+      <label>Institution / School Name *</label>
+      <input type="text" id="institutionName" placeholder="Enter institution name" autocomplete="off" />
+
+      <h2 style="margin-top:25px;">📝 Your Sums</h2>
+      <label>Your sums, one per line:</label>
+      <textarea id="sumsInput" placeholder="3 + 4 - 2&#10;7 + 8 - 5&#10;6 + 9 - 4" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">3 + 4 - 2
+7 + 8 - 5
+6 + 9 - 4
+5 + 5 + 3 - 8</textarea>
+
+      <div class="row">
+        <div>
+          <label>Style</label>
+          <select id="styleSelect">
+            <option value="flash">Flash: one by one</option>
+            <option value="full">Full sum on screen</option>
+          </select>
+        </div>
+        <div>
+          <label>Speed</label>
+          <select id="speedSelect">
+            <option value="1800">Slow (1.8s)</option>
+            <option value="1200" selected>Medium (1.2s)</option>
+            <option value="800">Fast (0.8s)</option>
+            <option value="500">Super fast (0.5s)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Shuffle</label>
+          <select id="shuffleSelect">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div>
+          <label>Finger Abacus</label>
+          <select id="fingerSelect">
+            <option value="learning">Show as numbers come</option>
+            <option value="answer">Show only with answer</option>
+            <option value="off">Off</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="startGame()">🚀 Start Game (Teacher)</button>
+      <button class="btn-warning" onclick="generateLink()">🔗 Generate Student Link</button>
+    </div>
+
+    <!-- STUDENT LOGIN VIEW (Hidden by default) -->
+    <div id="studentView" class="hidden login-card">
+      <div class="welcome-icon">🎓</div>
+      <h2>Student Login</h2>
+      <p style="color: var(--text-light); margin-bottom: 20px;">Enter your details to start the test</p>
+      
+      <label>Student Name *</label>
+      <input type="text" id="studentNameLogin" placeholder="Enter your name" autocomplete="off" />
+      
+      <label>Institution Name</label>
+      <input type="text" id="institutionNameLogin" placeholder="Enter institution" autocomplete="off" readonly />
+      
+      <button onclick="startGameFromLogin()">📝 Start Test</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameScreen" class="hidden">
+    <div class="hud">
+      <div class="hud-item">
+        <div class="hud-label">Score</div>
+        <div class="hud-value" id="scoreDisplay">0</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Streak 🔥</div>
+        <div class="hud-value streak" id="streakDisplay">0</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Progress</div>
+        <div class="hud-value" id="progressText">0/0</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Chocolates 🍫</div>
+        <div class="hud-value" id="chocoDisplay">0</div>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="monkey-stage">
+      <canvas id="monkeyCanvas" role="img" aria-label="A monkey jumping between trees above a river"></canvas>
+    </div>
+
+    <div class="game-area">
+      <div class="flash-number" id="flashNumber">Ready?</div>
+      <div class="finger-display" id="fingerDisplay"></div>
+    </div>
+
+    <input type="number" class="answer-input hidden" id="answerInput" placeholder="?" 
+           inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+    <div class="feedback" id="feedback"></div>
+
+    <div class="controls">
+      <button class="btn-secondary btn-small" onclick="checkAnswer()" id="checkBtn">✓ Check</button>
+      <button class="btn-small" onclick="reEnter()" id="reEnterBtn" style="display:none;">🔄 Retry</button>
+      <button class="btn-small" onclick="nextSum()" id="nextBtn" style="display:none;">→ Next</button>
+      <button class="btn-small" onclick="showAgain()" id="againBtn" style="display:none;">👁️ Show</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="trophy" id="trophyIcon">🏆</div>
+    <h2 id="reportTitle">Amazing Work!</h2>
+
+    <div class="student-info">
+      <div class="info-row">
+        <span class="info-label">👤 Student:</span>
+        <span class="info-value" id="reportStudentName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">🏫 Institution:</span>
+        <span class="info-value" id="reportInstitution">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">📅 Date:</span>
+        <span class="info-value" id="reportDate">-</span>
+      </div>
+    </div>
+
+    <div class="report-card" id="reportCard">
+      <h3>🧮 Abacus Flash Sums</h3>
+      <div class="student-name" id="cardStudentName">Student</div>
+      <div class="institution" id="cardInstitution">Institution</div>
+      <div class="big-score" id="cardScore">0</div>
+      <div class="score-label">Total Points</div>
+      <div class="stats-row">
+        <div class="mini-stat">
+          <div class="mini-value" id="cardAccuracy">0%</div>
+          <div class="mini-label">Accuracy</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-value" id="cardCorrect">0/0</div>
+          <div class="mini-label">Correct</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-value" id="cardStreak">0</div>
+          <div class="mini-label">Best Streak</div>
+        </div>
+      </div>
+      <div class="footer">Keep practicing! 🌟</div>
+    </div>
+
+    <div id="badgesArea"></div>
+
+    <div class="share-buttons">
+      <button class="btn-info" onclick="downloadReport()">📥 Download Report</button>
+    </div>
+
+    <button onclick="resetGame()">🎮 Play Again</button>
+    <button class="btn-small" onclick="closeReport()" style="background:#94a3b8;">✏️ Edit Sums</button>
+  </div>
+</div>
+
+<script>
+/* ==================== STATE ==================== */
+let sums = [], currentIndex = 0, currentSum = null;
+let score = 0, streak = 0, bestStreak = 0, correctCount = 0, totalAttempted = 0;
+let flashInterval = null, studentName = '', institutionName = '';
+let isStudentMode = false; // Flag to check if loaded from link
+let answerStartTime = 0, chocoTotal = 0;
+
+const fingerMap = {
+  '0': '✊', '1': '☝️', '2': '✌️', '3': '🤟', '4': '🖖',
+  '5': '🖐️', '6': '🤙', '7': '🤞+🖐️', '8': '🤞+🖖', '9': '☝️+🖐️'
+};
+
+/* ==================== AUDIO ENGINE ==================== */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playClap() {
+  initAudio();
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const bufferSize = audioCtx.sampleRate * 0.08;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let j = 0; j < bufferSize; j++) data[j] = (Math.random() * 2 - 1) * Math.pow(1 - j/bufferSize, 2);
+      const src = audioCtx.createBufferSource();
+      src.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass'; filter.frequency.value = 1500 + Math.random()*1000; filter.Q.value = 1;
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.3;
+      src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+      src.start();
+    }, i * 50);
+  }
+}
+
+function playCorrect() {
+  initAudio();
+  const now = audioCtx.currentTime;
+  [523.25, 659.25, 783.99].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq; osc.type = 'sine';
+    gain.gain.setValueAtTime(0, now + i*0.1);
+    gain.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.3);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now + i*0.1); osc.stop(now + i*0.1 + 0.3);
+  });
+}
+
+function playWrong() {
+  initAudio();
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(200, now);
+  osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+  gain.gain.setValueAtTime(0.15, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(now); osc.stop(now + 0.3);
+}
+
+function playCombo() {
+  initAudio();
+  const now = audioCtx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq; osc.type = 'triangle';
+    gain.gain.setValueAtTime(0, now + i*0.08);
+    gain.gain.linearRampToValueAtTime(0.25, now + i*0.08 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.08 + 0.4);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now + i*0.08); osc.stop(now + i*0.08 + 0.4);
+  });
+}
+
+/* ==================== CORE ==================== */
+function parseSums(text) {
+  return text.split('\n').map(l => l.trim()).filter(l => l).map(line => {
+    // Normalise symbols pasted from Word/WhatsApp: fancy minus, en/em dash, full-width plus
+    const clean = line.replace(/[\u2212\u2013\u2014]/g, '-').replace(/\uFF0B/g, '+');
+    // Split numbers and signs separately so "10-5" and "10 - 5" both work
+    const tokens = clean.match(/\d+|[+\-]/g);
+    if (!tokens || !/\d/.test(clean)) return null;
+    let result = 0, pendingSign = '+', steps = [];
+    for (const tok of tokens) {
+      if (tok === '+' || tok === '-') { pendingSign = tok; continue; }
+      const num = parseInt(tok, 10);
+      result = pendingSign === '+' ? result + num : result - num;
+      steps.push({ num, sign: pendingSign });
+      pendingSign = '+';
+    }
+    return { line, steps, answer: result };
+  }).filter(Boolean);
+}
+
+// Check URL for student link on load
+window.onload = function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const encodedSums = urlParams.get('q');
+  const encodedInst = urlParams.get('inst');
+
+  if (encodedSums) {
+    // STUDENT MODE
+    isStudentMode = true;
+    const decodedSums = decodeURIComponent(atob(encodedSums));
+    const decodedInst = encodedInst ? decodeURIComponent(atob(encodedInst)) : '';
+
+    document.getElementById('sumsInput').value = decodedSums;
+    document.getElementById('institutionNameLogin').value = decodedInst;
+    
+    // Hide teacher view, show student login
+    document.getElementById('teacherView').classList.add('hidden');
+    document.getElementById('studentView').classList.remove('hidden');
+    
+    // Update header
+    document.querySelector('.tagline').textContent = 'Student Test Mode';
+  }
+};
+
+function generateLink() {
+  const sumsText = document.getElementById('sumsInput').value;
+  const instName = document.getElementById('institutionName').value.trim();
+
+  if (!sumsText.trim()) { alert('Please enter sums first!'); return; }
+
+  // Encode sums and institution
+  const encodedSums = btoa(encodeURIComponent(sumsText));
+  const encodedInst = instName ? btoa(encodeURIComponent(instName)) : '';
+
+  // Create link
+  const baseUrl = window.location.href.split('?')[0];
+  const link = `${baseUrl}?q=${encodedSums}&inst=${encodedInst}`;
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('✅ Link copied! Share it with students.');
+  }).catch(() => {
+    prompt("Copy this link:", link);
+  });
+}
+
+function startGame() {
+  studentName = 'Teacher'; // Default for teacher mode
+  institutionName = document.getElementById('institutionName').value.trim();
+  
+  if (!institutionName) { alert('Please enter institution name!'); return; }
+
+  sums = parseSums(document.getElementById('sumsInput').value);
+  if (sums.length === 0) { alert('Please enter valid sums!'); return; }
+
+  if (document.getElementById('shuffleSelect').value === 'yes') {
+    for (let i = sums.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sums[i], sums[j]] = [sums[j], sums[i]];
+    }
+  }
+
+  currentIndex = 0; score = 0; streak = 0; bestStreak = 0;
+  correctCount = 0; totalAttempted = 0; chocoTotal = 0;
+  updateHUD();
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  mkResize(); mkReset();
+  loadSum();
+}
+
+function startGameFromLogin() {
+  studentName = document.getElementById('studentNameLogin').value.trim();
+  institutionName = document.getElementById('institutionNameLogin').value.trim();
+
+  if (!studentName) { alert('Please enter your name!'); return; }
+
+  sums = parseSums(document.getElementById('sumsInput').value);
+  if (sums.length === 0) { alert('No sums loaded!'); return; }
+
+  // Student mode settings (can be customized)
+  const style = 'flash';
+  const speed = 1200;
+  const fingerMode = 'off';
+
+  currentIndex = 0; score = 0; streak = 0; bestStreak = 0;
+  correctCount = 0; totalAttempted = 0; chocoTotal = 0;
+  updateHUD();
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  
+  // Force specific settings for student test
+  document.getElementById('styleSelect').value = style;
+  document.getElementById('speedSelect').value = speed;
+  document.getElementById('fingerSelect').value = fingerMode;
+  
+  mkResize(); mkReset();
+  loadSum();
+}
+
+function updateHUD() {
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('chocoDisplay').textContent = chocoTotal;
+  const streakEl = document.getElementById('streakDisplay');
+  streakEl.textContent = streak;
+  if (streak >= 3) { streakEl.classList.add('active'); setTimeout(()=>streakEl.classList.remove('active'), 500); }
+  document.getElementById('progressText').textContent = `${currentIndex}/${sums.length}`;
+  document.getElementById('progressFill').style.width = `${(currentIndex/sums.length)*100}%`;
+}
+
+function loadSum() {
+  if (currentIndex >= sums.length) { endGame(); return; }
+  currentSum = sums[currentIndex];
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('answerInput').classList.add('hidden');
+  document.getElementById('answerInput').value = '';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('againBtn').style.display = 'none';
+  document.getElementById('reEnterBtn').style.display = 'none';
+  document.getElementById('checkBtn').style.display = 'inline-block';
+  document.getElementById('fingerDisplay').textContent = '';
+
+  const style = document.getElementById('styleSelect').value;
+  const speed = parseInt(document.getElementById('speedSelect').value);
+  const fingerMode = document.getElementById('fingerSelect').value;
+
+  if (style === 'full') {
+    document.getElementById('flashNumber').textContent = currentSum.line;
+    document.getElementById('flashNumber').classList.add('pop');
+    setTimeout(() => document.getElementById('flashNumber').classList.remove('pop'), 300);
+    if (fingerMode === 'answer') document.getElementById('fingerDisplay').textContent = numberToFingers(currentSum.answer);
+    setTimeout(showAnswerInput, 500);
+  } else {
+    flashSequence(speed, fingerMode);
+  }
+}
+
+function flashSequence(speed, fingerMode) {
+  let stepIndex = 0, runningTotal = 0;
+  const flashEl = document.getElementById('flashNumber');
+  const fingerEl = document.getElementById('fingerDisplay');
+
+  function showNext() {
+    if (stepIndex >= currentSum.steps.length) {
+      flashEl.textContent = '?';
+      flashEl.classList.add('pop');
+      setTimeout(() => flashEl.classList.remove('pop'), 300);
+      fingerEl.textContent = '';
+      showAnswerInput();
+      return;
+    }
+    const step = currentSum.steps[stepIndex];
+    runningTotal = step.sign === '+' ? runningTotal + step.num : runningTotal - step.num;
+    const display = stepIndex === 0 ? `${step.num}` : `${step.sign} ${step.num}`;
+    flashEl.textContent = display;
+    flashEl.classList.add('pop');
+    setTimeout(() => flashEl.classList.remove('pop'), 300);
+    // In learning mode the hands show each running total, but not the final answer
+    fingerEl.textContent = (fingerMode === 'learning' && stepIndex < currentSum.steps.length - 1) ? numberToFingers(runningTotal) : '';
+    stepIndex++;
+    flashInterval = setTimeout(showNext, speed);
+  }
+  showNext();
+}
+
+function numberToFingers(n) {
+  if (n < 0 || isNaN(n)) return '';
+  // Each digit gets its own hand group, e.g. 15 -> [1][5]
+  return String(n).split('').map(d => fingerMap[d] || '').join('  ·  ');
+}
+
+function showAnswerInput() {
+  answerStartTime = Date.now();
+  const input = document.getElementById('answerInput');
+  input.classList.remove('hidden');
+  setTimeout(() => { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+}
+
+function reEnter() {
+  const input = document.getElementById('answerInput');
+  input.value = '';
+  input.classList.remove('hidden');
+  input.focus();
+
+  document.getElementById('checkBtn').style.display = 'inline-block';
+  document.getElementById('reEnterBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('againBtn').style.display = 'none';
+
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+}
+
+function checkAnswer() {
+  const input = document.getElementById('answerInput');
+  const userAns = parseInt(input.value);
+  if (isNaN(userAns)) return;
+
+  const isRetry = document.getElementById('feedback').textContent !== '';
+  if (!isRetry) totalAttempted++;
+
+  const feedback = document.getElementById('feedback');
+
+  if (userAns === currentSum.answer) {
+    if (!isRetry) {
+      streak++;
+      if (streak > bestStreak) bestStreak = streak;
+      correctCount++;
+      const multiplier = streak >= 5 ? 3 : streak >= 3 ? 2 : 1;
+      const secs = (Date.now() - answerStartTime) / 1000;
+      let speedLabel, speedBonus, candies, crackers;
+      if (secs <= 2.5)    { speedLabel = '⚡ High speed!';   speedBonus = 5; candies = 12; crackers = 6; }
+      else if (secs <= 3.5) { speedLabel = '👍 Medium speed';  speedBonus = 2; candies = 8;  crackers = 3; }
+      else                { speedLabel = '🐢 Slow';          speedBonus = 0; candies = 4;  crackers = 1; }
+      const points = 10 * multiplier + speedBonus + candies; // each chocolate piece = 1 point
+      score += points;
+      chocoTotal += candies;
+      feedback.textContent = `✅ Correct! +${points} (🍫 +${candies}) ${multiplier>1 ? '(x'+multiplier+' COMBO!)' : ''} ${speedLabel}`;
+      if (navigator.vibrate) navigator.vibrate(50);
+      showCorrectReward(points, candies);
+      showCrackers(crackers);
+      mkJump(speedBonus >= 5);
+      playCorrect();
+      setTimeout(playClap, 300);
+    } else {
+      feedback.textContent = `✅ Correct! (Practice mode)`;
+    }
+    feedback.className = 'feedback correct';
+
+    input.classList.add('hidden');
+    input.blur();
+    document.getElementById('checkBtn').style.display = 'none';
+    document.getElementById('reEnterBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    document.getElementById('againBtn').style.display = 'inline-block';
+    updateHUD();
+
+  } else {
+    streak = 0;
+    mkFall();
+    feedback.textContent = `❌ Wrong! The answer was ${currentSum.answer}. Press Next to continue.`;
+    feedback.className = 'feedback wrong';
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    playWrong();
+
+    // No retry: the question is not asked again
+    input.blur();
+    input.classList.add('hidden');
+    document.getElementById('checkBtn').style.display = 'none';
+    document.getElementById('reEnterBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    document.getElementById('againBtn').style.display = 'none';
+    updateHUD();
+  }
+}
+
+function nextSum() { currentIndex++; updateHUD(); loadSum(); }
+function showAgain() {
+  document.getElementById('flashNumber').textContent = currentSum.line;
+  document.getElementById('fingerDisplay').textContent = numberToFingers(currentSum.answer);
+}
+
+/* ==================== MONKEY JUMP STAGE ==================== */
+const MK = {
+  LH: 480, WATER: 410, GAP: 190, BASE: 1.5,
+  canvas: null, ctx: null, W: 300, H: 230, scale: 1, dpr: 1, LW: 600, EX: 0,
+  cam: 0, time: 0, trees: [], cur: 0, parts: [], rings: [], last: 0,
+  reduced: !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+  m: {x:0, y:0, rot:0, alpha:1, anim:'idle', t:0, fx:0, fy:0, tx:0, ty:0, vx:0, vy:0, flip:false, dur:0.85, sq:0, blink:2}
+};
+const MKP = {
+  sky1:'#8FD3F2', sky2:'#EAF8EE', sun:'#FFE27A', cloud:'#FFFFFF',
+  hill:'#A5D9B4', hill2:'#7FC59D', leaf:'#2F9158', leaf2:'#4FB471', trunk:'#7B5130',
+  water1:'#46B2D6', water2:'#2B83AE', fur:'#8A5A2C', face:'#F3D3A8'
+};
+
+function mkRnd(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+function mkEll(c, x, y, rx, ry){ c.moveTo(x + rx, y); c.ellipse(x, y, rx, ry, 0, 0, 6.2832); }
+function mkCirc(c, x, y, r){ mkEll(c, x, y, r, r); }
+
+function mkNewTree(i){ return {x: 140 + i * MK.GAP, top: i === 0 ? 268 : mkRnd(238, 298), ph: Math.random() * 6.28}; }
+function mkEnsureTrees(){ while (MK.trees.length < MK.cur + 6) MK.trees.push(mkNewTree(MK.trees.length)); }
+function mkPlaceOnTree(){
+  const t = MK.trees[MK.cur], m = MK.m;
+  m.x = t.x; m.y = t.top; m.rot = 0; m.sq = 0; m.alpha = 1; m.anim = 'idle'; m.t = 0;
+}
+function mkSnapCam(){ if (MK.trees.length) MK.cam = MK.trees[MK.cur].x - MK.LW * 0.26; }
+function mkReset(){
+  MK.cur = 0; MK.trees = []; MK.parts = []; MK.rings = [];
+  mkEnsureTrees(); mkPlaceOnTree(); mkSnapCam();
+}
+function mkResize(){
+  const r = MK.canvas.getBoundingClientRect();
+  MK.dpr = Math.min(window.devicePixelRatio || 1, 2);
+  MK.W = Math.max(200, r.width); MK.H = Math.max(150, r.height);
+  MK.canvas.width = Math.round(MK.W * MK.dpr); MK.canvas.height = Math.round(MK.H * MK.dpr);
+  MK.scale = Math.min(MK.H / MK.LH, MK.W / 420);
+  MK.LW = MK.W / MK.scale;
+  MK.EX = Math.max(0, MK.H / MK.scale - MK.LH);
+  mkSnapCam();
+}
+
+function mkBurst(x, y){
+  for (let i = 0; i < 10; i++) MK.parts.push({type:'star', x:x, y:y, vx:mkRnd(-90, 90), vy:-mkRnd(80, 220), life:0.8, max:0.8, r:mkRnd(2, 4)});
+}
+function mkSplash(x){
+  for (let i = 0; i < 14; i++) MK.parts.push({type:'drop', x:x, y:MK.WATER, vx:(Math.random() - 0.5) * 170, vy:-mkRnd(160, 340), life:0.9, max:0.9, r:mkRnd(2, 4)});
+  MK.rings.push({x:x, r:6, a:0.8}, {x:x, r:2, a:0.6});
+}
+
+function mkLand(){
+  const m = MK.m;
+  MK.cur++; mkEnsureTrees();
+  const t = MK.trees[MK.cur];
+  m.anim = 'idle'; m.x = t.x; m.y = t.top; m.rot = 0; m.sq = 1;
+  mkBurst(m.x, m.y - 24);
+}
+// Called on a correct answer. fast = top speed tier (flip + quicker hop)
+function mkJump(fast){
+  const m = MK.m;
+  if (m.anim === 'jump') mkLand();
+  else if (m.anim !== 'idle') mkPlaceOnTree();
+  mkEnsureTrees();
+  const to = MK.trees[MK.cur + 1];
+  m.anim = 'jump'; m.t = 0; m.fx = m.x; m.fy = m.y; m.tx = to.x; m.ty = to.top;
+  m.flip = !!fast && !MK.reduced; m.dur = fast ? 0.6 : 0.85; m.rot = 0;
+}
+// Called on a wrong answer: the monkey slips into the river, then climbs back
+function mkFall(){
+  const m = MK.m;
+  if (m.anim !== 'idle') return;
+  m.anim = 'fall'; m.t = 0; m.vx = 60; m.vy = -260; m.rot = 0;
+}
+
+function mkUpdate(dt){
+  const m = MK.m;
+  MK.time += dt;
+  const target = MK.trees[MK.cur].x - MK.LW * 0.26;
+  MK.cam += (target - MK.cam) * Math.min(1, dt * 4);
+  m.blink -= dt; if (m.blink < -0.14) m.blink = 2 + Math.random() * 3;
+  if (m.sq > 0) m.sq = Math.max(0, m.sq - dt * 4);
+
+  if (m.anim === 'jump'){
+    m.t += dt / m.dur;
+    const p = Math.min(m.t, 1);
+    m.x = m.fx + (m.tx - m.fx) * p;
+    m.y = m.fy + (m.ty - m.fy) * p - 4 * 90 * p * (1 - p);
+    m.rot = m.flip ? p * Math.PI * 2 : Math.sin(p * Math.PI) * 0.25;
+    if (m.t >= 1) mkLand();
+  } else if (m.anim === 'fall'){
+    m.vy += 1500 * dt; m.x += m.vx * dt; m.y += m.vy * dt; m.rot += 7 * dt;
+    if (m.y >= MK.WATER - 8){ mkSplash(m.x); m.anim = 'splash'; m.t = 0; m.alpha = 0; }
+  } else if (m.anim === 'splash'){
+    m.t += dt;
+    if (m.t > 1.0) mkPlaceOnTree();
+  }
+
+  for (let i = MK.parts.length - 1; i >= 0; i--){
+    const a = MK.parts[i];
+    a.life -= dt;
+    a.vy += (a.type === 'drop' ? 900 : 320) * dt;
+    a.x += a.vx * dt; a.y += a.vy * dt;
+    if (a.life <= 0 || (a.type === 'drop' && a.y > MK.WATER + 4)) MK.parts.splice(i, 1);
+  }
+  for (let j = MK.rings.length - 1; j >= 0; j--){
+    const r = MK.rings[j];
+    r.r += 60 * dt; r.a -= dt * 1.1;
+    if (r.a <= 0) MK.rings.splice(j, 1);
+  }
+}
+
+function mkDrawSky(c){
+  const g = c.createLinearGradient(0, -MK.EX, 0, MK.WATER);
+  g.addColorStop(0, MKP.sky1); g.addColorStop(1, MKP.sky2);
+  c.fillStyle = g; c.fillRect(0, -MK.EX - 2, MK.LW + 2, MK.LH + MK.EX + 4);
+  c.globalAlpha = 0.28; c.fillStyle = MKP.sun; c.beginPath(); mkCirc(c, MK.LW - 76, 70 - MK.EX * 0.3, 46); c.fill();
+  c.globalAlpha = 1; c.beginPath(); mkCirc(c, MK.LW - 76, 70 - MK.EX * 0.3, 28); c.fill();
+  c.fillStyle = MKP.cloud; c.globalAlpha = 0.9;
+  for (let i = 0; i < 5; i++){
+    const span = MK.LW + 320;
+    const cx = ((((i * 230 - MK.cam * 0.12 + (MK.reduced ? 0 : MK.time * 7)) % span) + span) % span) - 160;
+    const cy = 44 + (i % 3) * 34 - MK.EX * 0.5, s = 0.8 + (i % 2) * 0.35;
+    c.beginPath();
+    mkCirc(c, cx, cy, 16 * s); mkCirc(c, cx + 18 * s, cy - 7 * s, 20 * s); mkCirc(c, cx + 40 * s, cy, 15 * s);
+    c.rect(cx, cy, 40 * s, 15 * s);
+    c.fill();
+  }
+  c.globalAlpha = 1;
+}
+
+function mkHills(c, par, base, amp, col, f1, f2){
+  c.fillStyle = col; c.beginPath(); c.moveTo(0, MK.LH);
+  for (let x = 0; x <= MK.LW + 12; x += 12){
+    const wx = x + MK.cam * par;
+    c.lineTo(x, base + Math.sin(wx * f1) * amp + Math.sin(wx * f2 + 1.3) * amp * 0.4);
+  }
+  c.lineTo(MK.LW + 12, MK.LH); c.closePath(); c.fill();
+}
+
+function mkDrawTree(c, t){
+  const x = t.x - MK.cam, top = t.top;
+  const sw = MK.reduced ? 0 : Math.sin(MK.time * 1.3 + t.ph) * 1.5;
+  c.fillStyle = MKP.trunk; c.beginPath();
+  c.moveTo(x - 15, MK.WATER + 24); c.lineTo(x - 8, top + 16); c.lineTo(x + 8, top + 16); c.lineTo(x + 15, MK.WATER + 24);
+  c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(0,0,0,0.18)'; c.lineWidth = 2; c.lineCap = 'round';
+  const step = (MK.WATER - top - 40) / 4;
+  for (let k = 0; k < 4; k++){
+    const by = top + 40 + k * step;
+    c.beginPath(); c.moveTo(x - 4, by); c.lineTo(x - 2, by + 14); c.stroke();
+    c.beginPath(); c.moveTo(x + 5, by + 8); c.lineTo(x + 3, by + 20); c.stroke();
+  }
+  c.fillStyle = MKP.leaf; c.beginPath();
+  mkEll(c, x, top + 26, 68, 20);
+  mkCirc(c, x - 38 + sw, top + 14, 20); mkCirc(c, x - 12 + sw, top + 20, 24);
+  mkCirc(c, x + 14 + sw, top + 20, 24); mkCirc(c, x + 38 + sw, top + 14, 20);
+  c.fill();
+  c.fillStyle = MKP.leaf2; c.beginPath();
+  mkCirc(c, x - 38 + sw, top + 9, 11); mkCirc(c, x - 10 + sw, top + 11, 13);
+  mkCirc(c, x + 16 + sw, top + 11, 13); mkCirc(c, x + 40 + sw, top + 9, 10);
+  c.fill();
+}
+
+function mkDrawMonkey(c){
+  const m = MK.m;
+  if (m.alpha <= 0.01) return;
+  const air = m.anim === 'jump' || m.anim === 'fall', fall = m.anim === 'fall';
+  const sx = m.x - MK.cam, sy = m.y - 21;
+  const sc = MK.BASE * (1 + m.sq * 0.12), scy = MK.BASE * (1 - m.sq * 0.16);
+  const bob = (!air && !MK.reduced) ? Math.sin(MK.time * 3) : 0;
+  const wag = MK.reduced ? 0 : Math.sin(MK.time * 5) * 4;
+  const ink = '#2A1A10';
+  c.save();
+  c.globalAlpha = m.alpha;
+  c.translate(sx, sy + bob); c.rotate(m.rot); c.scale(sc, scy);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  // tail
+  c.strokeStyle = MKP.fur; c.lineWidth = 5;
+  c.beginPath(); c.moveTo(-8, 10); c.bezierCurveTo(-26, 16, -34, -2, -24 + wag, -12); c.stroke();
+  // body and feet
+  c.fillStyle = MKP.fur; c.beginPath();
+  mkEll(c, -7, air ? 15 : 19, 6, 4); mkEll(c, 7, air ? 15 : 19, 6, 4); mkEll(c, 0, 4, 11, 14);
+  c.fill();
+  // belly
+  c.fillStyle = MKP.face; c.beginPath(); mkEll(c, 0, 7, 7, 9); c.fill();
+  // arms
+  c.strokeStyle = MKP.fur; c.lineWidth = 5; c.beginPath();
+  if (air){ c.moveTo(-9, -3); c.lineTo(-17, -20); c.moveTo(9, -3); c.lineTo(17, -20); }
+  else { c.moveTo(-9, -3); c.lineTo(-13, 9); c.moveTo(9, -3); c.lineTo(13, 9); }
+  c.stroke();
+  // head and ears
+  c.fillStyle = MKP.fur; c.beginPath(); mkCirc(c, 0, -16, 12); mkCirc(c, -12, -17, 5); mkCirc(c, 12, -17, 5); c.fill();
+  c.fillStyle = MKP.face; c.beginPath(); mkCirc(c, -12, -17, 2.8); mkCirc(c, 12, -17, 2.8); mkEll(c, 0, -14, 9, 8); c.fill();
+  // eyes
+  const blinking = m.blink < 0 && m.blink > -0.12 && !air;
+  c.fillStyle = ink; c.strokeStyle = ink; c.lineWidth = 1.6;
+  if (blinking){
+    c.beginPath(); c.moveTo(-5.5, -16); c.lineTo(-1.8, -16); c.moveTo(1.8, -16); c.lineTo(5.5, -16); c.stroke();
+  } else {
+    const er = fall ? 2.6 : 1.9;
+    c.beginPath(); mkCirc(c, -3.6, -16, er); mkCirc(c, 3.6, -16, er); c.fill();
+  }
+  // mouth
+  c.beginPath();
+  if (fall){ mkCirc(c, 0, -10.5, 2.4); c.stroke(); }
+  else { c.arc(0, -12.5, 3.6, 0.2 * Math.PI, 0.8 * Math.PI); c.stroke(); }
+  c.restore();
+}
+
+function mkDrawWater(c){
+  const g = c.createLinearGradient(0, MK.WATER, 0, MK.LH);
+  g.addColorStop(0, MKP.water1); g.addColorStop(1, MKP.water2);
+  c.globalAlpha = 0.93; c.fillStyle = g; c.beginPath(); c.moveTo(-2, MK.LH + 2);
+  for (let x = -2; x <= MK.LW + 12; x += 10){
+    c.lineTo(x, MK.WATER + Math.sin((x + MK.cam) * 0.035 + MK.time * 2) * 3);
+  }
+  c.lineTo(MK.LW + 12, MK.LH + 2); c.closePath(); c.fill();
+  c.globalAlpha = 1;
+  c.strokeStyle = 'rgba(255,255,255,0.32)'; c.lineWidth = 2; c.lineCap = 'round';
+  [16, 34, 52].forEach(function(off, n){
+    c.beginPath();
+    for (let xx = -2; xx <= MK.LW + 12; xx += 10){
+      const yy = MK.WATER + off + Math.sin((xx + MK.cam * (1 + n * 0.1)) * 0.03 + MK.time * (1.6 + n * 0.3) + n * 2) * 2.5;
+      if (xx === -2) c.moveTo(xx, yy); else c.lineTo(xx, yy);
+    }
+    c.stroke();
+  });
+}
+
+function mkDrawParts(c){
+  MK.rings.forEach(function(r){
+    c.strokeStyle = 'rgba(255,255,255,' + Math.max(0, r.a).toFixed(2) + ')'; c.lineWidth = 2;
+    c.beginPath(); c.ellipse(r.x - MK.cam, MK.WATER + 3, r.r, r.r * 0.25, 0, 0, 6.2832); c.stroke();
+  });
+  MK.parts.forEach(function(a){
+    c.globalAlpha = Math.max(0, a.life / a.max);
+    c.fillStyle = a.type === 'star' ? '#FFD84D' : '#BEE9F7';
+    c.beginPath(); mkCirc(c, a.x - MK.cam, a.y, a.r); c.fill();
+  });
+  c.globalAlpha = 1;
+}
+
+function mkDraw(){
+  const c = MK.ctx;
+  c.setTransform(MK.dpr * MK.scale, 0, 0, MK.dpr * MK.scale, 0, 0);
+  c.clearRect(0, 0, MK.LW + 2, MK.LH + MK.EX + 2);
+  c.translate(0, MK.EX);
+  mkDrawSky(c);
+  mkHills(c, 0.25, 300, 32, MKP.hill, 0.011, 0.027);
+  mkHills(c, 0.5, 345, 22, MKP.hill2, 0.016, 0.041);
+  MK.trees.forEach(function(t){
+    const sx = t.x - MK.cam;
+    if (sx > -110 && sx < MK.LW + 110) mkDrawTree(c, t);
+  });
+  mkDrawMonkey(c);
+  mkDrawWater(c);
+  mkDrawParts(c);
+}
+
+function mkFrame(ts){
+  const dt = Math.min(0.05, (ts - MK.last) / 1000 || 0.016);
+  MK.last = ts;
+  mkUpdate(dt); mkDraw();
+  requestAnimationFrame(mkFrame);
+}
+
+MK.canvas = document.getElementById('monkeyCanvas');
+MK.ctx = MK.canvas.getContext('2d');
+mkResize(); mkReset();
+window.addEventListener('resize', mkResize);
+requestAnimationFrame(mkFrame);
+
+/* ==================== REWARDS ==================== */
+function showCorrectReward(points = 10, candies = 9) {
+  let layer = document.getElementById("rewardLayer");
+  if (!layer) { layer = document.createElement("div"); layer.id = "rewardLayer"; document.body.appendChild(layer); }
+
+  const answerBox = document.getElementById("answerInput");
+  let x = window.innerWidth / 2, y = window.innerHeight / 2;
+  if (answerBox) { const rect = answerBox.getBoundingClientRect(); x = rect.left + rect.width / 2; y = rect.top + rect.height / 2; }
+
+  const plus = document.createElement("div");
+  plus.className = "reward-plus10"; plus.textContent = "+" + points;
+  plus.style.left = x + "px"; plus.style.top = y + "px";
+  layer.appendChild(plus); setTimeout(() => plus.remove(), 1300);
+
+  const chocolates = ["🍫", "🍬", "🍭", "⭐"];
+  for (let i = 0; i < candies; i++) {
+    setTimeout(() => {
+      const choco = document.createElement("div");
+      choco.className = "reward-chocolate";
+      choco.textContent = chocolates[Math.floor(Math.random() * chocolates.length)];
+      choco.style.left = Math.random() * 90 + 5 + "%";
+      choco.style.animationDuration = 1.4 + Math.random() * 0.8 + "s";
+      layer.appendChild(choco); setTimeout(() => choco.remove(), 2300);
+    }, i * 90);
+  }
+
+  const colors = ["#ff3b30", "#ffcc00", "#34c759", "#007aff", "#af52de", "#ff9500", "#ff2d55"];
+  for (let i = 0; i < 42; i++) {
+    const particle = document.createElement("div");
+    particle.className = "reward-cracker";
+    const angle = Math.random() * Math.PI * 2, distance = 70 + Math.random() * 120;
+    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+    particle.style.setProperty("--startX", x + "px"); particle.style.setProperty("--startY", y + "px");
+    particle.style.setProperty("--moveX", Math.cos(angle) * distance + "px");
+    particle.style.setProperty("--moveY", Math.sin(angle) * distance + "px");
+    if (Math.random() > 0.5) { particle.style.borderRadius = "2px"; particle.style.width = "7px"; particle.style.height = "14px"; }
+    layer.appendChild(particle); setTimeout(() => particle.remove(), 1000);
+  }
+
+  const pop = document.createElement("div");
+  pop.className = "reward-pop"; pop.textContent = "🎉";
+  pop.style.left = x + "px"; pop.style.top = y - 45 + "px";
+  layer.appendChild(pop); setTimeout(() => pop.remove(), 1000);
+}
+
+/* ==================== CRACKERS ==================== */
+function showCrackers(count){
+  const layer = document.getElementById("rewardLayer");
+  if (!layer || !count) return;
+  const colors = ["#ff3b30", "#ffcc00", "#34c759", "#007aff", "#af52de", "#ff9500", "#ff2d55"];
+  for (let b = 0; b < count; b++){
+    setTimeout(() => {
+      const cx = window.innerWidth * (0.2 + Math.random() * 0.6);
+      const cy = window.innerHeight * (0.25 + Math.random() * 0.3);
+      for (let i = 0; i < 24; i++){
+        const p = document.createElement("div");
+        p.className = "reward-cracker";
+        const angle = Math.random() * Math.PI * 2, dist = 60 + Math.random() * 110;
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.setProperty("--startX", cx + "px"); p.style.setProperty("--startY", cy + "px");
+        p.style.setProperty("--moveX", Math.cos(angle) * dist + "px");
+        p.style.setProperty("--moveY", Math.sin(angle) * dist + "px");
+        layer.appendChild(p); setTimeout(() => p.remove(), 1000);
+      }
+    }, b * 220);
+  }
+}
+
+/* ==================== REPORT CELEBRATION ==================== */
+function triggerReportCelebration(accuracy) {
+  const layer = document.getElementById("rewardLayer");
+  if (!layer) return;
+
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+
+  const colors = ["#ff3b30", "#ffcc00", "#34c759", "#007aff", "#af52de", "#ff9500", "#ff2d55", "#fbbf24"];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const particle = document.createElement("div");
+      particle.className = "reward-cracker";
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 100 + Math.random() * 200;
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.setProperty("--startX", cx + "px");
+      particle.style.setProperty("--startY", cy + "px");
+      particle.style.setProperty("--moveX", Math.cos(angle) * distance + "px");
+      particle.style.setProperty("--moveY", Math.sin(angle) * distance + "px");
+      if (Math.random() > 0.5) {
+        particle.style.borderRadius = "2px";
+        particle.style.width = "8px";
+        particle.style.height = "16px";
+      } else {
+        particle.style.width = "12px";
+        particle.style.height = "12px";
+      }
+      layer.appendChild(particle);
+      setTimeout(() => particle.remove(), 1200);
+    }, i * 20);
+  }
+
+  const emojis = ["🎉", "🎊", "⭐", "🌟", "✨", "🏆", "👑", "🎯"];
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => {
+      const el = document.createElement("div");
+      el.className = "reward-chocolate";
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * 90 + 5 + "%";
+      el.style.fontSize = (30 + Math.random() * 20) + "px";
+      el.style.animationDuration = (1.5 + Math.random() * 1) + "s";
+      layer.appendChild(el);
+      setTimeout(() => el.remove(), 2500);
+    }, i * 100);
+  }
+
+  if (accuracy >= 50) {
+    playClap();
+    setTimeout(playCombo, 600);
+    setTimeout(playClap, 1200);
+  }
+
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100, 50, 200]);
+  }
+}
+
+/* ==================== REPORT ==================== */
+function endGame() {
+  const accuracy = totalAttempted > 0 ? Math.round((correctCount/totalAttempted)*100) : 0;
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  document.getElementById('reportStudentName').textContent = studentName;
+  document.getElementById('reportInstitution').textContent = institutionName;
+  document.getElementById('reportDate').textContent = dateStr;
+
+  document.getElementById('cardStudentName').textContent = studentName;
+  document.getElementById('cardInstitution').textContent = institutionName;
+  document.getElementById('cardScore').textContent = score;
+  document.getElementById('cardAccuracy').textContent = accuracy + '%';
+  document.getElementById('cardCorrect').textContent = `${correctCount}/${totalAttempted}`;
+  document.getElementById('cardStreak').textContent = bestStreak;
+
+  let trophy = '🏆', title = 'Amazing Work!';
+  if (accuracy >= 90) { trophy = '👑'; title = 'Math Champion!'; }
+  else if (accuracy >= 70) { trophy = '🏆'; title = 'Great Job!'; }
+  else if (accuracy >= 50) { trophy = '🌟'; title = 'Good Effort!'; }
+  else { trophy = '💪'; title = 'Keep Practicing!'; }
+  document.getElementById('trophyIcon').textContent = trophy;
+  document.getElementById('reportTitle').textContent = title;
+
+  const badges = [];
+  if (accuracy === 100) badges.push('🎯 Perfect Score');
+  if (bestStreak >= 5) badges.push('⚡ Streak Master');
+  if (bestStreak >= 10) badges.push('🔥 Unstoppable');
+  if (correctCount >= 10) badges.push('🧠 Math Wizard');
+  if (accuracy >= 80) badges.push('⭐ Star Performer');
+  document.getElementById('badgesArea').innerHTML = badges.map(b => `<span class="badge">${b}</span>`).join('');
+
+  document.getElementById('reportModal').classList.add('active');
+  setTimeout(() => triggerReportCelebration(accuracy), 300);
+}
+
+/* ==================== ACTUAL DOWNLOAD FUNCTION ==================== */
+function downloadReport() {
+  const card = document.getElementById('reportCard');
+  showToast('📸 Generating image...');
+  
+  html2canvas(card, { 
+    scale: 2,
+    backgroundColor: null, 
+    useCORS: true,
+    logging: false
+  }).then(canvas => {
+    const link = document.createElement('a');
+    const fileName = `Abacus_Report_${studentName.replace(/\s+/g, '_')}.png`;
+    link.download = fileName;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ Report downloaded!');
+  }).catch(err => {
+    showToast('❌ Download failed. Try a screenshot.');
+    console.error(err);
+  });
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast'); if (existing) existing.remove();
+  const toast = document.createElement('div'); toast.className = 'toast'; toast.textContent = msg;
+  document.body.appendChild(toast); setTimeout(() => toast.remove(), 2500);
+}
+
+function closeReport() { document.getElementById('reportModal').classList.remove('active'); resetGame(); }
+function resetGame() {
+  document.getElementById('reportModal').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('hidden');
+  document.getElementById('setupScreen').classList.remove('hidden');
+  if (flashInterval) clearTimeout(flashInterval);
+  
+  // If student mode, go back to login, not teacher view
+  if (isStudentMode) {
+    document.getElementById('teacherView').classList.add('hidden');
+    document.getElementById('studentView').classList.remove('hidden');
+  } else {
+    document.getElementById('teacherView').classList.remove('hidden');
+    document.getElementById('studentView').classList.add('hidden');
+  }
+}
+
+/* ==================== FIXED KEYBOARD HANDLER ==================== */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('reportModal').classList.contains('active')) return;
+  if (!document.getElementById('answerInput').classList.contains('hidden')) { checkAnswer(); return; }
+  if (document.getElementById('nextBtn').style.display !== 'none') { nextSum(); return; }
+});
+</script>
+</body>
+</html>
